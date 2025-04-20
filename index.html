@@ -1,19 +1,22 @@
 <html>
-<head><title>HTTPD with Client IP</title></head>
-<body>
-<h1>Welcome to the HTTPD Server</h1>
+<head><title>Python HTTP Server</title>
 <script>
-// This will refresh the IP display every 2 seconds
+// Auto-refresh the IP display
 function updateIP() {
     fetch('/client_ip.txt?t=' + new Date().getTime())
         .then(response => response.text())
         .then(ip => {
-            document.getElementById('ip-display').innerText = ip || 'No IP detected yet';
+            document.getElementById('ip-display').innerText = ip;
         });
-    setTimeout(updateIP, 2000);
+    setTimeout(updateIP, 1000);
 }
-updateIP();
+window.onload = updateIP;
 </script>
-<p>Your IP address is: <span id="ip-display">Loading...</span></p>
+</head>
+<body>
+<h1>Python HTTP Server</h1>
+<p>Your IP address is: <strong id="ip-display">Loading...</strong></p>
+<p>Page views from all visitors:</p>
+<iframe src="/server.log" width="100%" height="200px"></iframe>
 </body>
 </html>
