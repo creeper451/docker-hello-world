@@ -2,6 +2,18 @@
 <head><title>HTTPD with Client IP</title></head>
 <body>
 <h1>Welcome to the HTTPD Server</h1>
-<p>Your IP address is available <a href="/cgi-bin/client_ip.sh">here</a></p>
+<script>
+// This will refresh the IP display every 2 seconds
+function updateIP() {
+    fetch('/client_ip.txt?t=' + new Date().getTime())
+        .then(response => response.text())
+        .then(ip => {
+            document.getElementById('ip-display').innerText = ip || 'No IP detected yet';
+        });
+    setTimeout(updateIP, 2000);
+}
+updateIP();
+</script>
+<p>Your IP address is: <span id="ip-display">Loading...</span></p>
 </body>
 </html>
