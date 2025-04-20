@@ -2,25 +2,22 @@ FROM busybox:latest
 ENV PORT=8000
 LABEL maintainer="Chris <c@crccheck.com>"
 
-# Add a script that will generate dynamic HTML with client IP
+# Create directory structure
+RUN mkdir -p /www/cgi-bin /var/log
+
+# Add our custom index.html and a simple shell script
 ADD index.html /www/index.html
-ADD client_ip.sh /www/cgi-bin/client_ip.sh
-RUN chmod +x /www/cgi-bin/client_ip.sh
+ADD update_ip.sh /www/cgi-bin/update_ip.sh
+RUN chmod +x /www/cgi-bin/update_ip.sh
 
-# EXPOSE $PORT
+# Create empty log file
+RUN touch /var/log/httpd.log
 
-HEALTHCHECK CMD nc -z localhost $PORT
+# HEALTHCHECK CMD nc -z localhost $PORT
 
-# Create a basic webserver that logs client IPs and runs until stopped
+# Start httpd and a background process to log IPs
 CMD echo "httpd started" && \
     trap "exit 0;" TERM INT; \
-    httpd -v -p $PORT -h /www -f & \
-    while true; do \
-        tail -f /var/log/httpd.log | while read line; do \
-            if echo "$line" | grep -q "GET /"; then \
-                ip=$(echo "$line" | awk '{print $1}'); \
-                echo "Client IP: $ip" >> /www/current_ip.txt; \
-            fi; \
-        done; \
-    done & \
+    httpd -v -p $PORT -h /www -f 2>&1 | \
+    awk '{print > "/var/log/httpd.log"; if($3 == "GET") system("/www/cgi-bin/update_ip.sh "$1)}' & \
     wait
